@@ -1,0 +1,43 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # lehetővé teszi, hogy "kézzel" elindítsam a folyamatot
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: generate image tag
+      run: |
+        echo "IMAGE_TAG=$(date +%s)" >> $GITHUB_ENV
+
+    - uses: actions/checkout@v4
+    - name: Checkout repository
+      run: | 
+        docker build . --file Dockerfile  --tag ghcr.io/wafflsett/cicd-books:$IMAGE_TAG
+        docker login ghcr.io -u wafflsett -p ${{ secrets.GHCR_TOKEN }}
+        docker push ghcr.io/wafflsett/cicd-books:$IMAGE_TAG
+
+        sed -i 's|image: ghcr.io/wafflsett/cicd-books:.*|image: ghcr.io/wafflsett/cicd-books:'"$IMAGE_TAG"'|' test-deployment.yaml
+        
+        git config --global user.email "toros.gergo@gmail.com"
+        git config --global user.name "wafflsett"
+ 
+        git add test-deployment.yaml
+        git commit -m "update K8S deployment file"
+        git push
+
+        mkdir -p ~/.kube
+        echo "${{ secrets.JEDLIK_K8S_CONFIG }}" | base64 -d > ~/.kube/config
+        kubectl apply -f ./test-deployment.yaml

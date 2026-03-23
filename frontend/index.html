@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Library</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1208;
+      --paper: #f5f0e8;
+      --aged: #e8dfc8;
+      --sepia: #8b6914;
+      --rust: #b84c1e;
+      --moss: #3d5a3e;
+      --shadow: rgba(26,18,8,0.15);
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-display);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(139,105,20,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 90%, rgba(61,90,62,0.06) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Ccircle cx='1' cy='1' r='0.5' fill='%23c8b882' fill-opacity='0.3'/%3E%3C/svg%3E");
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding: 2rem 3rem 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    header h1 span {
+      color: var(--rust);
+      font-style: italic;
+    }
+    .subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      align-self: flex-end;
+      padding-bottom: 0.2em;
+    }
+    .api-indicator {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.3rem 0.7rem;
+      align-self: center;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      padding: 1rem 3rem;
+      border-bottom: 1px solid var(--aged);
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(232,223,200,0.4);
+    }
+    .toolbar input, .toolbar select {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: var(--paper);
+      border: 1px solid #c5b88a;
+      color: var(--ink);
+      padding: 0.45rem 0.75rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .toolbar input:focus, .toolbar select:focus { border-color: var(--ink); }
+    .toolbar input::placeholder { color: #b0a080; }
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn:hover { background: var(--ink); color: var(--paper); }
+    .btn.primary { background: var(--ink); color: var(--paper); }
+    .btn.primary:hover { background: var(--rust); border-color: var(--rust); }
+    .btn.danger { border-color: var(--rust); color: var(--rust); }
+    .btn.danger:hover { background: var(--rust); color: var(--paper); }
+    .sep { width: 1px; height: 1.5rem; background: var(--aged); margin: 0 0.25rem; }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0;
+      min-height: calc(100vh - 9rem);
+    }
+
+    /* ── BOOK LIST ── */
+    .book-list {
+      padding: 2rem 3rem;
+      border-right: 1px solid var(--aged);
+    }
+    .list-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .list-header h2 {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sepia);
+    }
+    .count-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      background: var(--sepia);
+      color: var(--paper);
+      padding: 0.1rem 0.45rem;
+    }
+
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--aged);
+      border: 1px solid var(--aged);
+    }
+    .book-card {
+      background: var(--paper);
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      animation: fadeIn 0.3s ease both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .book-card:hover { background: var(--aged); }
+    .book-card.selected { background: var(--ink); color: var(--paper); }
+    .book-card.selected .book-author,
+    .book-card.selected .book-year,
+    .book-card.selected .tag { color: #c8b882; border-color: #c8b882; }
+    .book-id {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--sepia);
+      margin-bottom: 0.35rem;
+    }
+    .book-card.selected .book-id { color: #c8b882; }
+    .book-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 0.3rem;
+    }
+    .book-author {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--sepia);
+      margin-bottom: 0.5rem;
+    }
+    .book-year {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: #9a8a6a;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem; }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      border: 1px solid #c5b88a;
+      color: var(--sepia);
+      padding: 0.1rem 0.4rem;
+      text-transform: uppercase;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 3rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #b0a080;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── SIDE PANEL ── */
+    .side-panel {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .panel-section h3 {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      border-bottom: 1px solid var(--aged);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .form-group {
+      margin-bottom: 0.75rem;
+    }
+    .form-group label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      margin-bottom: 0.3rem;
+    }
+    .form-group input {
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: var(--paper);
+      border: 1px solid #c5b88a;
+      border-bottom: 2px solid var(--ink);
+      color: var(--ink);
+      padding: 0.5rem 0.6rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--ink); border-bottom-color: var(--rust); }
+    .form-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    /* detail view */
+    .detail-box {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 1.25rem;
+    }
+    .detail-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-style: italic;
+      margin-bottom: 0.3rem;
+    }
+    .detail-meta {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: #c8b882;
+      margin-bottom: 0.75rem;
+    }
+    .detail-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .detail-tags .tag { border-color: #c8b882; color: #c8b882; }
+    .no-selection {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: #b0a080;
+      letter-spacing: 0.05em;
+      font-style: italic;
+    }
+
+    /* toast */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.6rem 1.2rem;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { background: var(--rust); }
+
+    /* loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid var(--aged);
+      border-top-color: var(--ink);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 800px) {
+      main { grid-template-columns: 1fr; }
+      .side-panel { border-top: 1px solid var(--aged); }
+      header, .toolbar, .book-list { padding-left: 1.25rem; padding-right: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>The <span>Library</span></h1>
+  <p class="subtitle">Books Collection</p>
+  <div class="api-indicator">localhost:3000</div>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="filterAuthor" placeholder="Filter by author…" oninput="fetchBooks()"/>
+  <input type="text" id="filterTag" placeholder="Filter by tag…" oninput="fetchBooks()"/>
+  <input type="number" id="filterYear" placeholder="Year…" style="width:90px" oninput="fetchBooks()"/>
+  <div class="sep"></div>
+  <button class="btn primary" onclick="openAddForm()">+ Add Book</button>
+  <button class="btn" onclick="clearFilters()">Clear</button>
+  <div id="loadingIndicator" style="display:none"><span class="spinner"></span></div>
+</div>
+
+<main>
+  <section class="book-list">
+    <div class="list-header">
+      <h2>Volumes</h2>
+      <span class="count-badge" id="countBadge">0</span>
+    </div>
+    <div class="books-grid" id="booksGrid">
+      <div class="empty-state">Loading collection…</div>
+    </div>
+  </section>
+
+  <aside class="side-panel">
+    <!-- Detail / selection -->
+    <div class="panel-section">
+      <h3>Selected Volume</h3>
+      <div id="detailView" class="no-selection">Click a book to inspect it.</div>
+    </div>
+
+    <!-- Add / Edit form -->
+    <div class="panel-section" id="formSection" style="display:none">
+      <h3 id="formTitle">Add Book</h3>
+      <input type="hidden" id="editId"/>
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="fTitle" placeholder="Book title"/>
+      </div>
+      <div class="form-group">
+        <label>Author *</label>
+        <input type="text" id="fAuthor" placeholder="Author name"/>
+      </div>
+      <div class="form-group">
+        <label>Year *</label>
+        <input type="number" id="fYear" placeholder="e.g. 1984"/>
+      </div>
+      <div class="form-group">
+        <label>Tags (comma-separated)</label>
+        <input type="text" id="fTags" placeholder="e.g. classic, novel"/>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" onclick="submitForm()">Save</button>
+        <button class="btn" onclick="closeForm()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Delete selected -->
+    <div id="deleteSection" style="display:none">
+      <button class="btn danger" style="width:100%" onclick="deleteSelected()">Delete Selected Book</button>
+    </div>
+  </aside>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const API = 'http://localhost:3000';
+  let selectedId = null;
+  let allBooks = [];
+
+  // ── Fetch & render books ───────────────────────────────────────────────────
+  async function fetchBooks() {
+    showLoading(true);
+    const author = document.getElementById('filterAuthor').value.trim();
+    const tag    = document.getElementById('filterTag').value.trim();
+    const year   = document.getElementById('filterYear').value.trim();
+
+    const params = new URLSearchParams();
+    if (author) params.set('author', author);
+    if (tag)    params.set('tag', tag);
+    if (year)   params.set('year', year);
+
+    try {
+      const res  = await fetch(`${API}/books?${params}`);
+      const data = await res.json();
+      allBooks = data.books || [];
+      renderBooks(allBooks);
+    } catch (e) {
+      showToast('Could not reach API at ' + API, true);
+      renderBooks([]);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function renderBooks(books) {
+    const grid  = document.getElementById('booksGrid');
+    const badge = document.getElementById('countBadge');
+    badge.textContent = books.length;
+
+    if (!books.length) {
+      grid.innerHTML = '<div class="empty-state">No books found.</div>';
+      return;
+    }
+
+    grid.innerHTML = books.map((b, i) => `
+      <div class="book-card ${b.id === selectedId ? 'selected' : ''}"
+           style="animation-delay:${i * 0.04}s"
+           onclick="selectBook('${b.id}')">
+        <div class="book-id">#${b.id}</div>
+        <div class="book-title">${esc(b.title)}</div>
+        <div class="book-author">${esc(b.author)}</div>
+        <div class="book-year">${b.year}</div>
+        <div class="tags">${(b.tags||[]).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── Select a book ─────────────────────────────────────────────────────────
+  function selectBook(id) {
+    selectedId = (selectedId === id) ? null : id;
+    renderBooks(allBooks);
+
+    const book = allBooks.find(b => b.id === id);
+    const detail = document.getElementById('detailView');
+    const delSec = document.getElementById('deleteSection');
+
+    if (!book || selectedId === null) {
+      detail.className = 'no-selection';
+      detail.innerHTML = 'Click a book to inspect it.';
+      delSec.style.display = 'none';
+      return;
+    }
+
+    detail.className = 'detail-box';
+    detail.innerHTML = `
+      <div class="detail-title">${esc(book.title)}</div>
+      <div class="detail-meta">${esc(book.author)} · ${book.year}</div>
+      <div class="detail-tags">${(book.tags||[]).map(t => `<span class="tag">${esc(t)}</span>`).join('') || '<span style="font-family:var(--font-mono);font-size:.65rem;color:#c8b882">No tags</span>'}</div>
+      <div style="margin-top:1rem">
+        <button class="btn" style="font-size:.65rem;border-color:#c8b882;color:#c8b882" onclick="openEditForm('${book.id}')">Edit</button>
+      </div>
+    `;
+    delSec.style.display = 'block';
+  }
+
+  // ── Form: Add ──────────────────────────────────────────────────────────────
+  function openAddForm() {
+    document.getElementById('formTitle').textContent = 'Add Book';
+    document.getElementById('editId').value = '';
+    document.getElementById('fTitle').value  = '';
+    document.getElementById('fAuthor').value = '';
+    document.getElementById('fYear').value   = '';
+    document.getElementById('fTags').value   = '';
+    document.getElementById('formSection').style.display = 'block';
+    document.getElementById('fTitle').focus();
+  }
+
+  // ── Form: Edit ─────────────────────────────────────────────────────────────
+  function openEditForm(id) {
+    const book = allBooks.find(b => b.id === id);
+    if (!book) return;
+    document.getElementById('formTitle').textContent = 'Edit Book';
+    document.getElementById('editId').value  = book.id;
+    document.getElementById('fTitle').value  = book.title;
+    document.getElementById('fAuthor').value = book.author;
+    document.getElementById('fYear').value   = book.year;
+    document.getElementById('fTags').value   = (book.tags||[]).join(', ');
+    document.getElementById('formSection').style.display = 'block';
+    document.getElementById('fTitle').focus();
+  }
+
+  function closeForm() {
+    document.getElementById('formSection').style.display = 'none';
+  }
+
+  // ── Submit form (POST or PUT) ───────────────────────────────────────────────
+  async function submitForm() {
+    const id     = document.getElementById('editId').value;
+    const title  = document.getElementById('fTitle').value.trim();
+    const author = document.getElementById('fAuthor').value.trim();
+    const year   = document.getElementById('fYear').value.trim();
+    const tagsRaw = document.getElementById('fTags').value.trim();
+    const tags   = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    if (!title || !author || !year) {
+      showToast('Title, author and year are required.', true);
+      return;
+    }
+
+    const body = { title, author, year: Number(year), tags };
+    const url  = id ? `${API}/books/${id}` : `${API}/books`;
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+      const res  = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error saving book.', true); return; }
+      showToast(id ? 'Book updated.' : 'Book added.');
+      closeForm();
+      selectedId = data.id;
+      await fetchBooks();
+      selectBook(data.id);
+    } catch (e) {
+      showToast('Could not reach API.', true);
+    }
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────────────────
+  async function deleteSelected() {
+    if (!selectedId) return;
+    if (!confirm('Delete this book?')) return;
+    try {
+      const res  = await fetch(`${API}/books/${selectedId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error deleting.', true); return; }
+      showToast('Book deleted.');
+      selectedId = null;
+      document.getElementById('detailView').className = 'no-selection';
+      document.getElementById('detailView').innerHTML = 'Click a book to inspect it.';
+      document.getElementById('deleteSection').style.display = 'none';
+      await fetchBooks();
+    } catch (e) {
+      showToast('Could not reach API.', true);
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function clearFilters() {
+    document.getElementById('filterAuthor').value = '';
+    document.getElementById('filterTag').value    = '';
+    document.getElementById('filterYear').value   = '';
+    fetchBooks();
+  }
+
+  function showLoading(on) {
+    document.getElementById('loadingIndicator').style.display = on ? 'block' : 'none';
+  }
+
+  let toastTimer;
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show' + (isError ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  fetchBooks();
+</script>
+</body>
+</html>

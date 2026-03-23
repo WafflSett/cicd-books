@@ -1,0 +1,20 @@
+services:
+  api:
+    build: ./api
+    volumes:
+      - ./api/server.js:/app/server.js
+    networks:
+      - books-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - books-net
+
+networks:
+  books-net:
+    driver: bridge

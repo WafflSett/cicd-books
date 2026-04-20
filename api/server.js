@@ -11,6 +11,7 @@ let books = [
   { id: "3", title: "To Kill a Mockingbird", author: "Harper Lee", year: 1960, tags: ["classic", "novel"] },
   { id: "4", title: "Pride and Prejudice", author: "Jane Austen", year: 1813, tags: ["romance", "classic"] },
   { id: "5", title: "The Catcher in the Rye", author: "J.D. Salinger", year: 1951, tags: ["classic", "novel"] },
+  { id: "6", title: "Egri Csillagok", author: "Gárdonyi Géza", year: 1899, tags: ["classic", "novel"] },
 ];
 
 let nextId = books.length + 1;

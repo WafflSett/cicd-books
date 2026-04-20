@@ -1,22 +1,64 @@
+# kubectl create secret docker-registry ghcr-auth-secret \
+#   --docker-server=ghcr.io --docker-username=wafflsett --docker-password=<TOKEN>
+
+# ── API Deployment ────────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
-metadata: 
-  name: cicd-books-deployment
-
+metadata:
+  name: cicd-books-api-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cicd-books
-
+      app: cicd-books-api
   template:
     metadata:
       labels:
-        app: cicd-books
+        app: cicd-books-api
     spec:
       containers:
-        - name: cicd-books-container
-          image: ghcr.io/wafflsett/cicd-books:latest
+        - name: cicd-books-api-container
+          image: ghcr.io/wafflsett/cicd-books-api:latest
+          ports:
+            - containerPort: 3000
+      imagePullSecrets:
+        - name: ghcr-auth-secret
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cicd-books-api-service
+spec:
+  selector:
+    app: cicd-books-api
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+
+---
+
+# ── Frontend Deployment ───────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cicd-books-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cicd-books-frontend
+  template:
+    metadata:
+      labels:
+        app: cicd-books-frontend
+    spec:
+      containers:
+        - name: cicd-books-frontend-container
+          image: ghcr.io/wafflsett/cicd-books-frontend:latest
           ports:
             - containerPort: 80
       imagePullSecrets:
@@ -27,36 +69,35 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cicd-books-cluster-ip-service
+  name: cicd-books-frontend-service
 spec:
   selector:
-    app: cicd-books
+    app: cicd-books-frontend
   type: ClusterIP
   ports:
     - protocol: TCP
+      port: 80
       targetPort: 80
-      port: 80        
 
 ---
 
+# ── Ingress ───────────────────────────────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: cicd-books-ingress
-    annotations:
-      #nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.13.39/32
-    
+  name: cicd-books-ingress
+  annotations:
+    #nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.13.39/32
 spec:
-    ingressClassName: nginx
-    
-    rules:
-       - host: tg-books.jcloud.jedlik.cloud
-         http:
-           paths:
-             - path: /
-               pathType: Prefix
-               backend:
-                 service:
-                   name: cicd-books-cluster-ip-service
-                   port:
-                     number: 80      
+  ingressClassName: nginx
+  rules:
+    - host: tg-books.jcloud.jedlik.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cicd-books-frontend-service
+                port:
+                  number: 80

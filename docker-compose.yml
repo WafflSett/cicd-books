@@ -5,7 +5,7 @@ services:
       - ./api/server.js:/app/server.js
     networks:
       - books-net
-
+ 
   frontend:
     build: ./frontend
     ports:
@@ -14,7 +14,8 @@ services:
       - api
     networks:
       - books-net
-
+ 
 networks:
   books-net:
     driver: bridge
+ 

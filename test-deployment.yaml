@@ -1,5 +1,3 @@
-# kubectl create secret docker-registry ghcr-auth-secret --docker-server=ghcr.io --docker-username=bognarpal --docker-password=<TOKEN>
-
 apiVersion: apps/v1
 kind: Deployment
 metadata: 
@@ -18,26 +16,11 @@ spec:
     spec:
       containers:
         - name: cicd-books-container
-          image: ghcr.io/wafflsett/cicd-books:1773220043
+          image: ghcr.io/wafflsett/cicd-books:latest
           ports:
             - containerPort: 80
       imagePullSecrets:
         - name: ghcr-auth-secret
-
---- 
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: cicd-books-cluster-ip-service
-spec:
-  selector:
-    app: cicd-books
-  type: ClusterIP
-  ports:
-    - protocol: TCP
-      targetPort: 80
-      port: 80        
 
 ---
 
@@ -67,7 +50,7 @@ spec:
     ingressClassName: nginx
     
     rules:
-       - host: cicd-books.jcloud.jedlik.cloud
+       - host: tg-books.jcloud.jedlik.cloud
          http:
            paths:
              - path: /
